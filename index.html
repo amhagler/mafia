@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mafia Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #6F263D;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .input-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-section input {
+            margin: 5px;
+        }
+        .container {
+            position: relative;
+            width: 800px;
+            height: 800px;
+            background-color: black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .player-oval {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            background-color: #8B2331;
+            color: white;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .player-oval.dead {
+            background-color: #333;
+            color: #ccc;
+        }
+        .btn-next-phase {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-color: #236192;
+            color: #8B2331;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            text-align: center;
+        }
+        .countdown-oval {
+            position: absolute;
+            width: 480px; /* 60% of 800px */
+            height: 480px; /* 60% of 800px */
+            background-color: #236192;
+            color: #8B2331;
+            border: 10px solid black;
+            border-radius: 50%;
+            display: none; /* Initially hidden */
+            flex-direction: column; /* Added to center the button */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 96px; /* proportional to the size */
+            z-index: 9999;
+        }
+        .btn-close {
+            background-color: #8B2331;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px; /* Add space above the button */
+        }
+        .hidden {
+            display: none;
+        }
+        .popup, .assign-roles-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 50px;
+            background: #6F263D;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+        }
+        .win-popup {
+            font-size: 96px; /* proportional to the size */
+            background-color: #236192;
+            color: #8B2331;
+            width: 480px;
+            height: 480px;
+            border: 10px solid black;
+            border-radius: 50%;
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            flex-direction: column;
+        }
+        .btn-restart, .btn-revive-all, .btn-yes, .btn-no, .btn-close {
+            background-color: #8B2331;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn-yes, .btn-no {
+            width: 100px;
+            margin: 0 10px;
+        }
+        .btn-yes:hover, .btn-no:hover, .btn-close:hover, .btn-restart:hover, .btn-revive-all:hover {
+            background-color: #6F263D;
+        }
+        .timer-settings {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .manual-assign-columns {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .manual-assign-column {
+            flex: 1;
+            padding: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mafia Game</h1>
+    <div class="input-section">
+        <div class="roles">
+            <h2>Assign Roles</h2>
+            <label for="players">Enter player names (comma separated):</label>
+            <input type="text" id="players" placeholder="e.g., Alice, Bob, Charlie" size="50"><br><br>
+            <label for="num-mafia">Enter number of mafia:</label>
+            <input type="number" id="num-mafia" placeholder="e.g., 2" min="1">
+            <button class="btn" onclick="assignRoles()">Assign Roles Randomly</button>
+            <button class="btn" onclick="showManualAssignPopup()">Assign Roles Manually</button>
+        </div>
+        <div class="timer-settings">
+            <label for="timer">Set Timer (minutes:seconds):</label>
+            <input type="text" id="timer" value="03:00" size="6">
+            <button class="btn" onclick="setTimer()">Set Timer</button>
+        </div>
+    </div>
+    <div class="container">
+        <div id="player-list" class="player-list"></div>
+        <div class="btn-next-phase" onclick="nextPhase()">Next Phase</div>
+        <div id="countdown-oval" class="countdown-oval hidden">
+            <div id="countdown"></div>
+            <button class="btn-close" onclick="endTimer()">End Timer</button>
+        </div>
+    </div>
+    <div id="popup" class="popup hidden">
+        <p id="popup-message"></p>
+        <button class="btn-yes" onclick="confirmRevive()">Yes</button>
+        <button class="btn-no" onclick="closePopup()">No</button>
+    </div>
+    <div id="win-popup" class="win-popup hidden">
+        <div id="win-message"></div>
+        <button class="btn-revive-all" onclick="reviveAllPlayers()">Revive All Players</button>
+    </div>
+    <div id="assign-roles-popup" class="assign-roles-popup hidden">
+        <h2>Assign Roles Manually</h2>
+        <div class="manual-assign-columns">
+            <div class="manual-assign-column" id="mafia-column">
+                <h3>Mafia</h3>
+                <div id="mafia-roles"></div>
+            </div>
+            <div class="manual-assign-column" id="detective-column">
+                <h3>Detective</h3>
+                <div id="detective-roles"></div>
+            </div>
+            <div class="manual-assign-column" id="medic-column">
+                <h3>Medic</h3>
+                <div id="medic-roles"></div>
+            </div>
+        </div>
+        <button class="btn" onclick="confirmManualAssign()">Confirm</button>
+        <button class="btn" onclick="closeManualAssignPopup()">Cancel</button>
+    </div>
+
+    <script>
+        let players = [];
+        let currentPhase = 'night';
+        let mafia = [];
+        let villagers = [];
+        let medic = null;
+        let detective = null;
+        let deadPlayers = [];
+        let countdownInterval;
+        let timerValue = 180; // default 3 minutes in seconds
+        let playerToRevive = null;
+
+        function assignRoles() {
+            const playerInput = document.getElementById('players').value;
+            const numMafia = parseInt(document.getElementById('num-mafia').value, 10);
+            players = playerInput.split(',').map(name => name.trim());
+
+            // Shuffle players randomly and assign roles
+            shuffle(players);
+            mafia = players.slice(0, numMafia);
+            medic = players[numMafia];
+            detective = players[numMafia + 1];
+            villagers = players.slice(numMafia + 2);
+            
+            // Sort players alphabetically for display
+            players.sort();
+            
+            alert(`Mafia: ${mafia.join(', ')}\nMedic: ${medic}\nDetective: ${detective}\nVillagers: ${villagers.join(', ')}`);
+            
+            displayPlayers();
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function displayPlayers() {
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '';
+            const radius = 340; // Adjust as needed
+            const angleStep = (2 * Math.PI) / players.length;
+
+            players.forEach((player, index) => {
+                const angle = index * angleStep;
+                const x = radius * Math.cos(angle) - 50;
+                const y = radius * Math.sin(angle) - 25;
+
+                const div = document.createElement('div');
+                div.textContent = player;
+                div.className = 'player-oval';
+                if (deadPlayers.includes(player)) {
+                    div.classList.add('dead');
+                }
+                div.style.transform = `translate(${x}px, ${y}px)`;
+                div.onclick = () => togglePlayerStatus(player, div);
+                playerList.appendChild(div);
+            });
+        }
+
+        function togglePlayerStatus(player, element) {
+            if (deadPlayers.includes(player)) {
+                playerToRevive = player;
+                document.getElementById('popup-message').textContent = `Revive this player?`;
+                document.getElementById('popup').classList.remove('hidden');
+            } else {
+                deadPlayers.push(player);
+                element.classList.add('dead');
+                checkVictoryConditions();
+            }
+        }
+
+        function confirmRevive() {
+            const index = deadPlayers.indexOf(playerToRevive);
+            if (index > -1) {
+                deadPlayers.splice(index, 1);
+                displayPlayers();
+            }
+            closePopup();
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.add('hidden');
+        }
+
+        function setTimer() {
+            const timerInput = document.getElementById('timer').value.split(':');
+            const minutes = parseInt(timerInput[0], 10);
+            const seconds = parseInt(timerInput[1], 10);
+            timerValue = (minutes * 60) + seconds;
+        }
+
+        function nextPhase() {
+            if (currentPhase === 'night') {
+                currentPhase = 'day';
+                startDayTimer();
+            } else {
+                currentPhase = 'night';
+                document.getElementById('countdown-oval').style.display = 'none';
+            }
+        }
+
+        function startDayTimer() {
+            let timeLeft = timerValue;
+            const countdownElement = document.getElementById('countdown');
+            document.getElementById('countdown-oval').style.display = 'flex';
+            countdownInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    flashCountdown();
+                } else {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                }
+            }, 1000);
+        }
+
+        function endTimer() {
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-oval').style.display = 'none';
+            nextPhase();
+        }
+
+        function flashCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            countdownElement.textContent = '0:00';
+            let flashCount = 0;
+            const flashTimer = setInterval(() => {
+                countdownElement.style.visibility = countdownElement.style.visibility === 'hidden' ? 'visible' : 'hidden';
+                flashCount++;
+                if (flashCount === 10) {
+                    clearInterval(flashTimer);
+                    document.getElementById('countdown-oval').style.display = 'none';
+                    nextPhase(); // Automatically move to the next phase when flashing is done
+                }
+            }, 500);
+        }
+
+        function checkVictoryConditions() {
+            const villagersAndSpecials = villagers.concat(medic, detective);
+            if (mafia.length === deadPlayers.filter(player => mafia.includes(player)).length) {
+                showWinPopup('Villagers Win!');
+            } else if (mafia.length >= villagersAndSpecials.length - deadPlayers.filter(player => villagersAndSpecials.includes(player)).length) {
+                showWinPopup('Mafia Wins!');
+            }
+        }
+
+        function showWinPopup(message) {
+            const winMessage = document.getElementById('win-message');
+            winMessage.textContent = message;
+            const winPopup = document.getElementById('win-popup');
+            winPopup.style.display = 'flex';
+            let flashCount = 0;
+            const flashTimer = setInterval(() => {
+                if (flashCount % 2 === 0) {
+                    winPopup.style.backgroundColor = '#236192';
+                    winPopup.style.color = '#6F263D';
+                } else {
+                    winPopup.style.backgroundColor = 'black';
+                    winPopup.style.color = '#236192';
+                }
+                flashCount++;
+                if (flashCount === 10) {
+                    clearInterval(flashTimer);
+                    winPopup.style.backgroundColor = 'black';
+                    winPopup.style.color = '#236192';
+                    document.querySelector('.btn-revive-all').style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        function closeWinPopup() {
+            document.getElementById('win-popup').style.display = 'none';
+        }
+
+        function showManualAssignPopup() {
+            const playerInput = document.getElementById('players').value;
+            const numMafia = parseInt(document.getElementById('num-mafia').value, 10);
+            players = playerInput.split(',').map(name => name.trim());
+
+            const mafiaRolesDiv = document.getElementById('mafia-roles');
+            const detectiveRolesDiv = document.getElementById('detective-roles');
+            const medicRolesDiv = document.getElementById('medic-roles');
+            mafiaRolesDiv.innerHTML = '';
+            detectiveRolesDiv.innerHTML = '';
+            medicRolesDiv.innerHTML = '';
+
+            players.forEach(player => {
+                const mafiaDiv = document.createElement('div');
+                const detectiveDiv = document.createElement('div');
+                const medicDiv = document.createElement('div');
+                mafiaDiv.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="mafia-${player}" class="mafia-checkbox" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
+                    </label>
+                `;
+                detectiveDiv.innerHTML = `
+                    <label>
+                        <input type="radio" name="detective" id="detective-${player}" class="detective-radio" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
+                    </label>
+                `;
+                medicDiv.innerHTML = `
+                    <label>
+                        <input type="radio" name="medic" id="medic-${player}" class="medic-radio" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
+                    </label>
+                `;
+                mafiaRolesDiv.appendChild(mafiaDiv);
+                detectiveRolesDiv.appendChild(detectiveDiv);
+                medicRolesDiv.appendChild(medicDiv);
+            });
+
+            // Ensure only the required number of mafia can be selected
+            const mafiaCheckboxes = document.querySelectorAll('.mafia-checkbox');
+            mafiaCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const checkedMafia = document.querySelectorAll('.mafia-checkbox:checked');
+                    if (checkedMafia.length > numMafia) {
+                        checkbox.checked = false;
+                    }
+                });
+            });
+
+            document.getElementById('assign-roles-popup').classList.remove('hidden');
+        }
+
+        function checkSingleRole(player) {
+            // Uncheck any roles that are already assigned to the same player
+            document.querySelectorAll(`.mafia-checkbox, .detective-radio, .medic-radio`).forEach(input => {
+                if (input.value === player && !input.checked) {
+                    input.checked = false;
+                }
+            });
+        }
+
+        function closeManualAssignPopup() {
+            document.getElementById('assign-roles-popup').classList.add('hidden');
+        }
+
+        function confirmManualAssign() {
+            mafia = [];
+            villagers = [];
+            medic = null;
+            detective = null;
+
+            const mafiaCheckboxes = document.querySelectorAll('.mafia-checkbox:checked');
+            mafiaCheckboxes.forEach(checkbox => {
+                mafia.push(checkbox.value);
+            });
+
+            const medicRadio = document.querySelector('.medic-radio:checked');
+            if (medicRadio) {
+                medic = medicRadio.value;
+            }
+
+            const detectiveRadio = document.querySelector('.detective-radio:checked');
+            if (detectiveRadio) {
+                detective = detectiveRadio.value;
+            }
+
+            players.forEach(player => {
+                if (!mafia.includes(player) && player !== medic && player !== detective) {
+                    villagers.push(player);
+                }
+            });
+
+            alert(`Mafia: ${mafia.join(', ')}\nMedic: ${medic}\nDetective: ${detective}\nVillagers: ${villagers.join(', ')}`);
+            document.getElementById('assign-roles-popup').classList.add('hidden');
+            displayPlayers();
+        }
+
+        function reviveAllPlayers() {
+            deadPlayers = [];
+            displayPlayers();
+            closeWinPopup();
+        }
+    </script>
+</body>
+</html>
