@@ -355,10 +355,12 @@
         }
 
         function checkVictoryConditions() {
-            const villagersAndSpecials = villagers.concat(medic, detective);
-            if (mafia.length === deadPlayers.filter(player => mafia.includes(player)).length) {
+            const remainingVillagers = players.filter(player => !mafia.includes(player) && !deadPlayers.includes(player));
+            const remainingMafia = mafia.filter(player => !deadPlayers.includes(player));
+
+            if (remainingMafia.length === 0) {
                 showWinPopup('Villagers Win!');
-            } else if (mafia.length >= villagersAndSpecials.length - deadPlayers.filter(player => villagersAndSpecials.includes(player)).length) {
+            } else if (remainingMafia.length >= remainingVillagers.length) {
                 showWinPopup('Mafia Wins!');
             }
         }
