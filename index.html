@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mafia Game</title>
 
-  <!-- Modern broadcast + clean UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -17,10 +16,7 @@
       --blue:#236192;
       --blue-dark:#1b4e6f;
 
-      --ink:#0b0c10;
-      --bg:#0b0c10;
       --panel: rgba(255,255,255,.08);
-      --panel-strong: rgba(255,255,255,.12);
       --line: rgba(255,255,255,.14);
       --muted: rgba(255,255,255,.72);
 
@@ -33,6 +29,8 @@
       --glow-gold: 0 0 28px rgba(255,204,51,.22);
 
       --circle-size: min(84vw, 820px);
+
+      /* pill size used by JS too */
       --pill-w: 132px;
       --pill-h: 58px;
     }
@@ -47,8 +45,6 @@
       padding: 26px 18px 40px;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: #fff;
-
-      /* theatrical curtain + stage lighting */
       background:
         radial-gradient(1200px 900px at 50% -200px, rgba(35,97,146,.35), transparent 60%),
         radial-gradient(900px 700px at 10% 20%, rgba(255,204,51,.10), transparent 55%),
@@ -72,7 +68,6 @@
       gap: 14px;
       margin-bottom: 18px;
     }
-
     @media (max-width: 900px){
       .top-wrap{ grid-template-columns: 1fr; }
     }
@@ -154,11 +149,9 @@
     .btn.primary:hover{ box-shadow: 0 18px 38px rgba(0,0,0,.55), var(--glow-gold); }
 
     .btn.danger{
-      border-color: rgba(255,255,255,.18);
       background: linear-gradient(180deg, rgba(139,35,49,.75), rgba(92,31,50,.80));
       box-shadow: 0 14px 28px rgba(0,0,0,.45);
     }
-    .btn.danger:hover{ box-shadow: 0 16px 34px rgba(0,0,0,.55), 0 0 28px rgba(139,35,49,.24); }
 
     .btn.small{
       padding: 8px 10px;
@@ -220,7 +213,6 @@
     .dot.night{ background: rgba(139,35,49,.95); box-shadow: 0 0 26px rgba(139,35,49,.30); }
     .dot.day{ background: rgba(35,97,146,.95); box-shadow: 0 0 26px rgba(35,97,146,.30); }
 
-    /* Stage circle */
     .stage-wrap{
       width: min(1100px, 100%);
       display:flex;
@@ -236,10 +228,7 @@
       border-radius: 50%;
       overflow:hidden;
       box-shadow: var(--shadow), 0 0 0 7px rgba(255,255,255,.06), var(--glow-blue);
-
-      /* subtle LED rim */
       border: 1px solid rgba(255,255,255,.12);
-
       background:
         radial-gradient(circle at 50% 44%, rgba(255,255,255,.08), transparent 42%),
         radial-gradient(circle at 50% 50%, #14161b 0%, #05060a 55%, #000 100%);
@@ -248,7 +237,6 @@
       align-items:center;
     }
 
-    /* Spotlight overlay */
     .container::before{
       content:"";
       position:absolute;
@@ -262,15 +250,20 @@
       opacity:.85;
     }
 
-    /* Player ring layer */
+    /* Player layer */
     #player-list{
       position:absolute;
       inset:0;
-      pointer-events:none; /* allow pills to be pointer events individually */
+      pointer-events:none;
     }
 
+    /* FIXED ALIGNMENT:
+       Anchor each pill to center (50/50) then offset by --tx/--ty (computed in JS).
+       Hover scaling never changes its anchor point. */
     .player-oval{
       position:absolute;
+      left: 50%;
+      top: 50%;
       width: var(--pill-w);
       height: var(--pill-h);
       border-radius: 999px;
@@ -285,7 +278,12 @@
       cursor:pointer;
       user-select:none;
 
-      /* lit nameplate */
+      --tx: 0px;
+      --ty: 0px;
+      --s: 1;
+
+      transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(var(--s));
+
       background:
         linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)),
         linear-gradient(180deg, rgba(139,35,49,.90), rgba(92,31,50,.92));
@@ -296,7 +294,7 @@
       padding: 6px 10px;
     }
     .player-oval:hover{
-      transform: translate(var(--x), var(--y)) scale(1.03);
+      --s: 1.04;
       box-shadow: 0 18px 34px rgba(0,0,0,.60), inset 0 1px 0 rgba(255,255,255,.14), 0 0 26px rgba(255,204,51,.16);
     }
 
@@ -310,12 +308,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .player-sub{
-      font-size: 11px;
-      color: rgba(255,255,255,.78);
-      line-height: 1;
-      display:none;
-    }
+
     .player-oval.dead{
       background:
         linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
@@ -359,7 +352,6 @@
       box-shadow: 0 30px 60px rgba(0,0,0,.70), 0 0 34px rgba(255,204,51,.26);
       filter: brightness(1.05);
     }
-    .btn-next-phase:active{ transform: scale(1.00); }
     .btn-next-phase .big{
       font-family: Oswald, Inter, sans-serif;
       font-size: 20px;
@@ -376,7 +368,6 @@
       line-height: 1.2;
     }
 
-    /* Countdown ring overlay */
     .countdown-oval{
       position:absolute;
       width: 62%;
@@ -393,7 +384,6 @@
         radial-gradient(circle at 30% 25%, rgba(255,255,255,.16), transparent 40%),
         linear-gradient(180deg, rgba(255,204,51,.12), rgba(255,204,51,.05)),
         linear-gradient(180deg, rgba(35,97,146,.92), rgba(27,78,111,.92));
-
       border: 10px solid rgba(0,0,0,.85);
       box-shadow: 0 30px 80px rgba(0,0,0,.75), var(--glow-blue);
       backdrop-filter: blur(6px);
@@ -413,7 +403,6 @@
       justify-content:center;
     }
 
-    /* Modal overlay */
     .overlay{
       position:fixed;
       inset:0;
@@ -457,7 +446,6 @@
       flex-wrap: wrap;
     }
 
-    /* Win popup: cinematic */
     .win-circle{
       width: min(520px, 84vw);
       height: min(520px, 84vw);
@@ -510,7 +498,6 @@
       margin-bottom: 18px;
     }
 
-    /* Manual assign layout */
     .columns{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -560,7 +547,6 @@
       height: 18px;
     }
 
-    /* small footer note */
     .footer-note{
       margin-top: 10px;
       font-size: 12px;
@@ -569,10 +555,7 @@
       width: min(1100px, 100%);
     }
 
-    /* subtle pulse for phase button when game started */
-    .pulse{
-      animation: pulse 1.6s ease-in-out infinite;
-    }
+    .pulse{ animation: pulse 1.6s ease-in-out infinite; }
     @keyframes pulse{
       0%,100%{ box-shadow: 0 26px 52px rgba(0,0,0,.65), 0 0 30px rgba(255,204,51,.20); }
       50%{ box-shadow: 0 30px 60px rgba(0,0,0,.70), 0 0 42px rgba(255,204,51,.28); }
@@ -722,19 +705,18 @@
 
   <script>
     // ======= Game State =======
-    let players = [];              // display order (alphabetical)
-    let mafia = [];                // names
-    let medic = null;              // name
-    let detective = null;          // name
-    let deadPlayers = new Set();   // names
+    let players = [];
+    let mafia = [];
+    let medic = null;
+    let detective = null;
+    let deadPlayers = new Set();
 
     let gameStarted = false;
     let gameOver = false;
-
-    let currentPhase = 'night';    // 'night' | 'day'
+    let currentPhase = 'night';
 
     // Timer
-    let timerValue = 180;          // seconds
+    let timerValue = 180;
     let countdownInterval = null;
     let timeLeft = 180;
     let timerRunning = false;
@@ -747,35 +729,26 @@
     const el = {
       setupError: document.getElementById('setup-error'),
       manualError: document.getElementById('manual-error'),
-
       aliveCount: document.getElementById('alive-count'),
       deadCount: document.getElementById('dead-count'),
-
       phaseDot: document.getElementById('phase-dot'),
       phaseText: document.getElementById('phase-text'),
-
       timerInput: document.getElementById('timer'),
       timerDisplay: document.getElementById('timer-display'),
-
       stage: document.getElementById('stage'),
       playerList: document.getElementById('player-list'),
-
       nextPhaseBtn: document.getElementById('btn-next-phase'),
       nextPhaseMain: document.getElementById('next-phase-main'),
       nextPhaseSub: document.getElementById('next-phase-sub'),
-
       countdownOval: document.getElementById('countdown-oval'),
       countdown: document.getElementById('countdown'),
       btnPause: document.getElementById('btn-pause'),
       btnResume: document.getElementById('btn-resume'),
       btnEndTimer: document.getElementById('btn-end-timer'),
-
-      // overlays
       reviveOverlay: document.getElementById('revive-overlay'),
       reviveMessage: document.getElementById('revive-message'),
       btnReviveYes: document.getElementById('btn-revive-yes'),
       btnReviveNo: document.getElementById('btn-revive-no'),
-
       manualOverlay: document.getElementById('manual-overlay'),
       needMafia: document.getElementById('need-mafia'),
       manualMafia: document.getElementById('manual-mafia'),
@@ -783,7 +756,6 @@
       manualMedic: document.getElementById('manual-medic'),
       btnManualCancel: document.getElementById('btn-manual-cancel'),
       btnManualConfirm: document.getElementById('btn-manual-confirm'),
-
       winOverlay: document.getElementById('win-overlay'),
       winMessage: document.getElementById('win-message'),
       winSub: document.getElementById('win-sub'),
@@ -791,10 +763,10 @@
       btnReviveAll: document.getElementById('btn-revive-all'),
     };
 
-    // Buttons (setup)
+    // Setup buttons
     document.getElementById('btn-assign-random').addEventListener('click', assignRolesRandomly);
     document.getElementById('btn-assign-manual').addEventListener('click', showManualAssignPopup);
-    document.getElementById('btn-set-timer').addEventListener('click', setTimerFromInput);
+    document.getElementById('btn-set-timer').addEventListener('click', () => setTimerFromInput(false));
     document.getElementById('btn-reset').addEventListener('click', resetGame);
 
     // Stage controls
@@ -811,6 +783,7 @@
     // Manual modal controls
     el.btnManualCancel.addEventListener('click', closeManualAssignPopup);
     el.manualOverlay.addEventListener('click', (e) => { if(e.target === el.manualOverlay) closeManualAssignPopup(); });
+    el.btnManualConfirm.addEventListener('click', confirmManualAssign);
 
     // Win modal controls
     el.btnCloseWin.addEventListener('click', () => showOverlay(el.winOverlay, false));
@@ -832,18 +805,17 @@
       targetEl.textContent = '';
       targetEl.style.display = 'none';
     }
+    function showOverlay(overlayEl, on){
+      overlayEl.style.display = on ? 'flex' : 'none';
+    }
 
     function parsePlayersInput(){
       const raw = document.getElementById('players').value || '';
-      // split, trim, filter empties
       let list = raw.split(',')
         .map(s => s.trim())
-        .filter(s => s.length > 0);
+        .filter(s => s.length > 0)
+        .map(s => s.replace(/\s+/g,' '));
 
-      // normalize whitespace
-      list = list.map(s => s.replace(/\s+/g,' '));
-
-      // detect duplicates (case-insensitive)
       const seen = new Set();
       const dups = new Set();
       for (const name of list){
@@ -851,7 +823,6 @@
         if(seen.has(key)) dups.add(name);
         seen.add(key);
       }
-
       return { list, dups: Array.from(dups) };
     }
 
@@ -862,11 +833,9 @@
       return `${m}:${r < 10 ? '0' : ''}${r}`;
     }
 
-    // Accept: "mm:ss", "m:ss", "ss", "m" (treated as minutes only if <= 59? no—treat single number as seconds for safety)
     function parseTimerInput(str){
       const t = (str || '').trim();
       if(!t) return null;
-
       if(t.includes(':')){
         const parts = t.split(':').map(p => p.trim());
         if(parts.length !== 2) return null;
@@ -874,12 +843,8 @@
         const ss = Number(parts[1]);
         if(!Number.isFinite(mm) || !Number.isFinite(ss)) return null;
         if(mm < 0 || ss < 0) return null;
-
-        const clampedSeconds = Math.min(59, Math.floor(ss));
-        return Math.floor(mm) * 60 + clampedSeconds;
+        return Math.floor(mm) * 60 + Math.min(59, Math.floor(ss));
       }
-
-      // if no colon, treat as seconds
       const v = Number(t);
       if(!Number.isFinite(v) || v < 0) return null;
       return Math.floor(v);
@@ -890,10 +855,6 @@
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
-    }
-
-    function showOverlay(overlayEl, on){
-      overlayEl.style.display = on ? 'flex' : 'none';
     }
 
     function updateCounts(){
@@ -916,14 +877,12 @@
         el.nextPhaseBtn.classList.remove('pulse');
         return;
       }
-
       if(gameOver){
         el.nextPhaseMain.textContent = 'Game Over';
         el.nextPhaseSub.textContent = 'Revive or reset';
         el.nextPhaseBtn.classList.remove('pulse');
         return;
       }
-
       if(currentPhase === 'night'){
         el.nextPhaseMain.textContent = 'Start Day';
         el.nextPhaseSub.textContent = 'Open timer';
@@ -939,50 +898,51 @@
         showError(el.setupError, 'Assign roles first to begin the game.');
         return false;
       }
-      if(gameOver){
-        // allow phase button to do nothing when game over
-        return false;
-      }
+      if(gameOver) return false;
       return true;
     }
 
-    // ======= Core: Display =======
+    // ======= FIXED: Perfect ring placement =======
     function displayPlayers(){
       el.playerList.innerHTML = '';
-
       if(players.length === 0){
         updateCounts();
         return;
       }
 
-      const size = el.stage.getBoundingClientRect().width;
-      const radius = Math.max(0, (size / 2) - 90); // keep pills inside stage bounds
+      const rect = el.stage.getBoundingClientRect();
+      const stageSize = Math.min(rect.width, rect.height);
+
+      // read pill size from CSS variables
+      const css = getComputedStyle(document.documentElement);
+      const pillW = parseFloat(css.getPropertyValue('--pill-w')) || 132;
+      const pillH = parseFloat(css.getPropertyValue('--pill-h')) || 58;
+
+      // radius: keep pills on the rim but not clipped
+      const safety = 18; // padding away from edge
+      const radius = (stageSize / 2) - Math.max(pillW, pillH) / 2 - safety;
+
       const angleStep = (2 * Math.PI) / players.length;
 
       players.forEach((player, idx) => {
-        const angle = idx * angleStep - Math.PI / 2; // start at top
-        const x = (radius * Math.cos(angle));
-        const y = (radius * Math.sin(angle));
+        const angle = idx * angleStep - Math.PI / 2; // top start
+
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
 
         const pill = document.createElement('div');
         pill.className = 'player-oval';
         if(deadPlayers.has(player)) pill.classList.add('dead');
 
-        // store translate in CSS vars for hover scaling while preserving position
-        pill.style.setProperty('--x', `translate(${x - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pill-w'))/2)}px, ${y - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pill-h'))/2)}px)`);
-        pill.style.setProperty('--y', '');
-
-        pill.style.transform = `translate(${x - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pill-w'))/2)}px, ${y - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pill-h'))/2)}px)`;
+        // lock to circle: center anchor + offsets
+        pill.style.setProperty('--tx', `${x}px`);
+        pill.style.setProperty('--ty', `${y}px`);
 
         const nameEl = document.createElement('div');
         nameEl.className = 'player-name';
         nameEl.textContent = player;
 
-        const subEl = document.createElement('div');
-        subEl.className = 'player-sub';
-
         pill.appendChild(nameEl);
-        pill.appendChild(subEl);
 
         pill.addEventListener('click', () => togglePlayerStatus(player));
         el.playerList.appendChild(pill);
@@ -991,18 +951,24 @@
       updateCounts();
     }
 
-    // keep ring layout responsive on resize
     window.addEventListener('resize', () => {
       if(players.length) displayPlayers();
     });
 
-    // ======= Game logic: Roles =======
+    // ======= Roles / Setup =======
     function validateSetup(list, numMafia){
       if(list.length < 1) return 'Enter at least one player name.';
       if(!Number.isFinite(numMafia) || numMafia < 1) return 'Enter a valid mafia count (minimum 1).';
       if(list.length < numMafia + 2) return `Not enough players. You need at least ${numMafia + 2} players for ${numMafia} mafia + Medic + Detective.`;
       if(numMafia > list.length - 2) return `Mafia count is too high. Max mafia for ${list.length} players is ${list.length - 2}.`;
       return null;
+    }
+
+    function resetRoundState(){
+      mafia = [];
+      medic = null;
+      detective = null;
+      deadPlayers = new Set();
     }
 
     function assignRolesRandomly(){
@@ -1013,7 +979,7 @@
       const numMafia = Number.parseInt(document.getElementById('num-mafia').value, 10);
 
       if(dups.length){
-        showError(el.setupError, `Duplicate name detected (case-insensitive). Please make all names unique. Example duplicate: "${dups[0]}".`);
+        showError(el.setupError, `Duplicate name detected. Make names unique. Example duplicate: "${dups[0]}".`);
         return;
       }
 
@@ -1023,10 +989,8 @@
         return;
       }
 
-      // reset state
       resetRoundState();
 
-      // role assignment on shuffled list
       const working = list.slice();
       shuffle(working);
 
@@ -1034,7 +998,6 @@
       medic = working[numMafia];
       detective = working[numMafia + 1];
 
-      // display list alphabetical
       players = list.slice().sort((a,b) => a.localeCompare(b));
 
       gameStarted = true;
@@ -1054,65 +1017,7 @@
       );
     }
 
-    function resetRoundState(){
-      mafia = [];
-      medic = null;
-      detective = null;
-      deadPlayers = new Set();
-    }
-
     // ======= Manual Assign =======
-    function showManualAssignPopup(){
-      clearError(el.setupError);
-      clearError(el.manualError);
-
-      const { list, dups } = parsePlayersInput();
-      const numMafia = Number.parseInt(document.getElementById('num-mafia').value, 10);
-
-      if(dups.length){
-        showError(el.setupError, `Duplicate name detected (case-insensitive). Please make all names unique. Example duplicate: "${dups[0]}".`);
-        return;
-      }
-
-      const err = validateSetup(list, numMafia);
-      if(err){
-        showError(el.setupError, err);
-        return;
-      }
-
-      // Build UI safely (no innerHTML with user content)
-      el.needMafia.textContent = String(numMafia);
-
-      el.manualMafia.innerHTML = '';
-      el.manualDetective.innerHTML = '';
-      el.manualMedic.innerHTML = '';
-
-      // Use stable indices (not names) for IDs
-      list.forEach((name, i) => {
-        // Mafia checkbox
-        el.manualMafia.appendChild(makeOption('checkbox', `mafia_${i}`, 'mafia', i, name));
-        // Detective radio
-        el.manualDetective.appendChild(makeOption('radio', `detective_${i}`, 'detective', i, name));
-        // Medic radio
-        el.manualMedic.appendChild(makeOption('radio', `medic_${i}`, 'medic', i, name));
-      });
-
-      // Enforce mafia max, and prevent same player having multiple roles
-      el.manualOverlay.dataset.numMafia = String(numMafia);
-      el.manualOverlay.dataset.playerCount = String(list.length);
-
-      // store list temporarily on overlay (safe as JSON)
-      el.manualOverlay.dataset.players = JSON.stringify(list);
-
-      // Add change handlers
-      el.manualOverlay.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('change', () => enforceManualRules());
-      });
-
-      showOverlay(el.manualOverlay, true);
-      enforceManualRules(); // initial
-    }
-
     function makeOption(type, id, groupName, index, label){
       const wrap = document.createElement('label');
       wrap.className = 'opt';
@@ -1123,9 +1028,7 @@
       input.dataset.idx = String(index);
       input.dataset.role = groupName;
 
-      if(type === 'radio'){
-        input.name = groupName; // group
-      }
+      if(type === 'radio') input.name = groupName;
 
       const text = document.createElement('span');
       text.textContent = label;
@@ -1145,50 +1048,73 @@
       const detInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="detective"]'));
       const medInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="medic"]'));
 
-      // Cap mafia count
       const checkedMafia = mafiaInputs.filter(i => i.checked);
       if(checkedMafia.length > numMafia){
-        // uncheck the most recently changed element (best effort: uncheck last in DOM)
         checkedMafia[checkedMafia.length - 1].checked = false;
       }
 
-      // Role exclusivity per player index:
-      // If mafia checked for idx, unset detective/medic for that idx
-      // If detective checked for idx, unset mafia + medic for that idx
-      // If medic checked for idx, unset mafia + detective for that idx
       for(let i = 0; i < list.length; i++){
-        const m = mafiaInputs.find(x => Number(x.dataset.idx) === i)?.checked;
-        const d = detInputs.find(x => Number(x.dataset.idx) === i)?.checked;
-        const c = medInputs.find(x => Number(x.dataset.idx) === i)?.checked;
+        const mi = mafiaInputs.find(x => Number(x.dataset.idx) === i);
+        const di = detInputs.find(x => Number(x.dataset.idx) === i);
+        const ci = medInputs.find(x => Number(x.dataset.idx) === i);
 
-        // Priority: whichever is checked last will have fired change event.
-        // We'll resolve by simple rule: if mafia is checked, clear others;
-        // else if detective is checked, clear medic & mafia; else if medic checked, clear mafia & detective.
-        if(m){
-          const di = detInputs.find(x => Number(x.dataset.idx) === i);
-          const ci = medInputs.find(x => Number(x.dataset.idx) === i);
+        if(mi?.checked){
           if(di) di.checked = false;
           if(ci) ci.checked = false;
-        } else if(d){
-          const mi = mafiaInputs.find(x => Number(x.dataset.idx) === i);
-          const ci = medInputs.find(x => Number(x.dataset.idx) === i);
+        } else if(di?.checked){
           if(mi) mi.checked = false;
           if(ci) ci.checked = false;
-        } else if(c){
-          const mi = mafiaInputs.find(x => Number(x.dataset.idx) === i);
-          const di = detInputs.find(x => Number(x.dataset.idx) === i);
+        } else if(ci?.checked){
           if(mi) mi.checked = false;
           if(di) di.checked = false;
         }
       }
     }
 
+    function showManualAssignPopup(){
+      clearError(el.setupError);
+      clearError(el.manualError);
+
+      const { list, dups } = parsePlayersInput();
+      const numMafia = Number.parseInt(document.getElementById('num-mafia').value, 10);
+
+      if(dups.length){
+        showError(el.setupError, `Duplicate name detected. Make names unique. Example duplicate: "${dups[0]}".`);
+        return;
+      }
+
+      const err = validateSetup(list, numMafia);
+      if(err){
+        showError(el.setupError, err);
+        return;
+      }
+
+      el.needMafia.textContent = String(numMafia);
+      el.manualMafia.innerHTML = '';
+      el.manualDetective.innerHTML = '';
+      el.manualMedic.innerHTML = '';
+
+      list.forEach((name, i) => {
+        el.manualMafia.appendChild(makeOption('checkbox', `mafia_${i}`, 'mafia', i, name));
+        el.manualDetective.appendChild(makeOption('radio', `detective_${i}`, 'detective', i, name));
+        el.manualMedic.appendChild(makeOption('radio', `medic_${i}`, 'medic', i, name));
+      });
+
+      el.manualOverlay.dataset.numMafia = String(numMafia);
+      el.manualOverlay.dataset.players = JSON.stringify(list);
+
+      el.manualOverlay.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('change', () => enforceManualRules());
+      });
+
+      showOverlay(el.manualOverlay, true);
+      enforceManualRules();
+    }
+
     function closeManualAssignPopup(){
       showOverlay(el.manualOverlay, false);
       clearError(el.manualError);
     }
-
-    el.btnManualConfirm.addEventListener('click', confirmManualAssign);
 
     function confirmManualAssign(){
       clearError(el.manualError);
@@ -1209,30 +1135,11 @@
       const pickedDetective = detInputs.find(i => i.checked);
       const pickedMedic = medInputs.find(i => i.checked);
 
-      // Build roles
       resetRoundState();
 
       mafia = pickedMafiaIdx.map(i => list[i]);
       detective = pickedDetective ? list[Number(pickedDetective.dataset.idx)] : null;
       medic = pickedMedic ? list[Number(pickedMedic.dataset.idx)] : null;
-
-      // Validate no overlap (should be enforced, but double-check)
-      const all = new Set();
-      for(const n of mafia){
-        if(all.has(n)){
-          showError(el.manualError, 'A player is assigned multiple roles. Please try again.');
-          return;
-        }
-        all.add(n);
-      }
-      if(detective){
-        if(all.has(detective)){ showError(el.manualError, 'Detective overlaps with Mafia.'); return; }
-        all.add(detective);
-      }
-      if(medic){
-        if(all.has(medic)){ showError(el.manualError, 'Medic overlaps with another role.'); return; }
-        all.add(medic);
-      }
 
       players = list.slice().sort((a,b)=>a.localeCompare(b));
       gameStarted = true;
@@ -1315,7 +1222,6 @@
     function reviveAllPlayers(){
       deadPlayers = new Set();
       gameOver = false;
-      // keep roles, restart at night
       currentPhase = 'night';
       stopTimer(true);
       updatePhaseUI();
@@ -1333,11 +1239,10 @@
       }
       clearError(el.setupError);
 
-      timerValue = Math.max(5, Math.min(60 * 60, parsed)); // clamp 5s to 60m
+      timerValue = Math.max(5, Math.min(60 * 60, parsed));
       el.timerDisplay.textContent = formatTime(timerValue);
       el.countdown.textContent = formatTime(timerValue);
 
-      // if currently running, reset to new value
       if(timerRunning){
         stopTimer(false);
         startDayTimer();
@@ -1361,7 +1266,6 @@
     }
 
     function startDayTimer(){
-      // prevent multiple intervals
       stopTimer(false);
 
       timerRunning = true;
@@ -1404,7 +1308,6 @@
     function endTimerEarly(){
       if(!timerRunning) return;
       stopTimer(true);
-      // move to night
       currentPhase = 'night';
       updatePhaseUI();
       updateNextPhaseButton();
@@ -1435,7 +1338,6 @@
           el.countdown.style.visibility = 'visible';
           el.countdownOval.style.display = 'none';
 
-          // auto-advance to night
           currentPhase = 'night';
           updatePhaseUI();
           updateNextPhaseButton();
@@ -1445,9 +1347,11 @@
 
     // ======= Reset =======
     function resetGame(){
-      // stop everything and clear state
       stopTimer(true);
-      resetRoundState();
+      mafia = [];
+      medic = null;
+      detective = null;
+      deadPlayers = new Set();
       players = [];
       gameStarted = false;
       gameOver = false;
@@ -1460,7 +1364,6 @@
       clearError(el.setupError);
       clearError(el.manualError);
 
-      // close overlays if open
       showOverlay(el.reviveOverlay, false);
       showOverlay(el.manualOverlay, false);
       showOverlay(el.winOverlay, false);
