@@ -1,498 +1,1470 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Mafia Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #6F263D;
-            color: #FFFFFF;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 {
-            text-align: center;
-        }
-        .input-section {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .input-section input {
-            margin: 5px;
-        }
-        .container {
-            position: relative;
-            width: 800px;
-            height: 800px;
-            background-color: black;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .player-oval {
-            position: absolute;
-            width: 100px;
-            height: 50px;
-            background-color: #8B2331;
-            color: white;
-            border-radius: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .player-oval.dead {
-            background-color: #333;
-            color: #ccc;
-        }
-        .btn-next-phase {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background-color: #236192;
-            color: #8B2331;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-            text-align: center;
-        }
-        .countdown-oval {
-            position: absolute;
-            width: 480px; /* 60% of 800px */
-            height: 480px; /* 60% of 800px */
-            background-color: #236192;
-            color: #8B2331;
-            border: 10px solid black;
-            border-radius: 50%;
-            display: none; /* Initially hidden */
-            flex-direction: column; /* Added to center the button */
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: 96px; /* proportional to the size */
-            z-index: 9999;
-        }
-        .btn-close {
-            background-color: #8B2331;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px; /* Add space above the button */
-        }
-        .hidden {
-            display: none;
-        }
-        .popup, .assign-roles-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 50px;
-            background: #6F263D;
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-        }
-        .win-popup {
-            font-size: 96px; /* proportional to the size */
-            background-color: #236192;
-            color: #8B2331;
-            width: 480px;
-            height: 480px;
-            border: 10px solid black;
-            border-radius: 50%;
-            display: none; /* Initially hidden */
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10000;
-            flex-direction: column;
-        }
-        .btn-restart, .btn-revive-all, .btn-yes, .btn-no, .btn-close {
-            background-color: #8B2331;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .btn-yes, .btn-no {
-            width: 100px;
-            margin: 0 10px;
-        }
-        .btn-yes:hover, .btn-no:hover, .btn-close:hover, .btn-restart:hover, .btn-revive-all:hover {
-            background-color: #6F263D;
-        }
-        .timer-settings {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .manual-assign-columns {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-        }
-        .manual-assign-column {
-            flex: 1;
-            padding: 0 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mafia Game</title>
+
+  <!-- Modern broadcast + clean UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --burgundy:#6F263D;
+      --burgundy-dark:#5c1f32;
+      --blue:#236192;
+      --blue-dark:#1b4e6f;
+
+      --ink:#0b0c10;
+      --bg:#0b0c10;
+      --panel: rgba(255,255,255,.08);
+      --panel-strong: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.14);
+      --muted: rgba(255,255,255,.72);
+
+      --gold:#FFCC33;
+
+      --radius: 18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --shadow-sm: 0 10px 28px rgba(0,0,0,.42);
+      --glow-blue: 0 0 34px rgba(35,97,146,.35);
+      --glow-gold: 0 0 28px rgba(255,204,51,.22);
+
+      --circle-size: min(84vw, 820px);
+      --pill-w: 132px;
+      --pill-h: 58px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding: 26px 18px 40px;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #fff;
+
+      /* theatrical curtain + stage lighting */
+      background:
+        radial-gradient(1200px 900px at 50% -200px, rgba(35,97,146,.35), transparent 60%),
+        radial-gradient(900px 700px at 10% 20%, rgba(255,204,51,.10), transparent 55%),
+        radial-gradient(900px 700px at 90% 25%, rgba(255,204,51,.08), transparent 55%),
+        linear-gradient(180deg, rgba(111,38,61,.90), rgba(11,12,16,.96) 58%, rgba(0,0,0,.98));
+    }
+
+    h1{
+      margin: 10px 0 14px;
+      font-family: Oswald, Inter, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: clamp(28px, 3.1vw, 44px);
+      text-shadow: 0 10px 35px rgba(0,0,0,.55);
+    }
+
+    .top-wrap{
+      width: min(1100px, 100%);
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 900px){
+      .top-wrap{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 16px 16px 14px;
+    }
+
+    .panel h2{
+      margin: 0 0 10px;
+      font-family: Oswald, Inter, sans-serif;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-size: 18px;
+      color: rgba(255,255,255,.92);
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+      letter-spacing: .02em;
+    }
+
+    input[type="text"], input[type="number"]{
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px;
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      padding: 10px 12px;
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    input[type="text"]::placeholder{ color: rgba(255,255,255,.45); }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn{
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      color:#fff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing: .02em;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.26);
+      box-shadow: 0 14px 28px rgba(0,0,0,.42), var(--glow-blue);
+    }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    .btn.primary{
+      border-color: rgba(255,204,51,.38);
+      background:
+        linear-gradient(180deg, rgba(255,204,51,.22), rgba(255,204,51,.08)),
+        linear-gradient(180deg, rgba(35,97,146,.60), rgba(27,78,111,.62));
+      box-shadow: 0 16px 32px rgba(0,0,0,.48), var(--glow-gold);
+    }
+    .btn.primary:hover{ box-shadow: 0 18px 38px rgba(0,0,0,.55), var(--glow-gold); }
+
+    .btn.danger{
+      border-color: rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(139,35,49,.75), rgba(92,31,50,.80));
+      box-shadow: 0 14px 28px rgba(0,0,0,.45);
+    }
+    .btn.danger:hover{ box-shadow: 0 16px 34px rgba(0,0,0,.55), 0 0 28px rgba(139,35,49,.24); }
+
+    .btn.small{
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      line-height: 1.25;
+    }
+
+    .error{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,60,60,.12);
+      border: 1px solid rgba(255,60,60,.22);
+      color: rgba(255,255,255,.92);
+      display:none;
+      font-size: 13px;
+    }
+
+    .status{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.26);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+    }
+    .badge strong{
+      font-family: Oswald, Inter, sans-serif;
+      letter-spacing:.06em;
+      text-transform: uppercase;
+      font-size: 13px;
+      color:#fff;
+    }
+    .dot{
+      width: 10px; height: 10px; border-radius: 999px;
+      background: var(--gold);
+      box-shadow: var(--glow-gold);
+    }
+    .dot.night{ background: rgba(139,35,49,.95); box-shadow: 0 0 26px rgba(139,35,49,.30); }
+    .dot.day{ background: rgba(35,97,146,.95); box-shadow: 0 0 26px rgba(35,97,146,.30); }
+
+    /* Stage circle */
+    .stage-wrap{
+      width: min(1100px, 100%);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+    }
+
+    .container{
+      position: relative;
+      width: var(--circle-size);
+      height: var(--circle-size);
+      border-radius: 50%;
+      overflow:hidden;
+      box-shadow: var(--shadow), 0 0 0 7px rgba(255,255,255,.06), var(--glow-blue);
+
+      /* subtle LED rim */
+      border: 1px solid rgba(255,255,255,.12);
+
+      background:
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,.08), transparent 42%),
+        radial-gradient(circle at 50% 50%, #14161b 0%, #05060a 55%, #000 100%);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    /* Spotlight overlay */
+    .container::before{
+      content:"";
+      position:absolute;
+      inset:-8%;
+      background:
+        radial-gradient(closest-side at 50% 40%, rgba(35,97,146,.22), transparent 62%),
+        radial-gradient(closest-side at 52% 55%, rgba(255,204,51,.10), transparent 64%),
+        radial-gradient(closest-side at 50% 50%, rgba(0,0,0,.25), rgba(0,0,0,.65));
+      pointer-events:none;
+      mix-blend-mode: screen;
+      opacity:.85;
+    }
+
+    /* Player ring layer */
+    #player-list{
+      position:absolute;
+      inset:0;
+      pointer-events:none; /* allow pills to be pointer events individually */
+    }
+
+    .player-oval{
+      position:absolute;
+      width: var(--pill-w);
+      height: var(--pill-h);
+      border-radius: 999px;
+
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: 2px;
+
+      pointer-events:auto;
+      cursor:pointer;
+      user-select:none;
+
+      /* lit nameplate */
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.04)),
+        linear-gradient(180deg, rgba(139,35,49,.90), rgba(92,31,50,.92));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 16px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10), 0 0 22px rgba(139,35,49,.18);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease, box-shadow .12s ease;
+      text-align:center;
+      padding: 6px 10px;
+    }
+    .player-oval:hover{
+      transform: translate(var(--x), var(--y)) scale(1.03);
+      box-shadow: 0 18px 34px rgba(0,0,0,.60), inset 0 1px 0 rgba(255,255,255,.14), 0 0 26px rgba(255,204,51,.16);
+    }
+
+    .player-name{
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .02em;
+      line-height: 1.05;
+      max-width: 100%;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .player-sub{
+      font-size: 11px;
+      color: rgba(255,255,255,.78);
+      line-height: 1;
+      display:none;
+    }
+    .player-oval.dead{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+        linear-gradient(180deg, rgba(60,60,60,.72), rgba(22,22,22,.84));
+      border-color: rgba(255,255,255,.10);
+      box-shadow: 0 14px 26px rgba(0,0,0,.60), inset 0 1px 0 rgba(255,255,255,.06);
+      filter: grayscale(.4);
+      opacity: .85;
+    }
+    .player-oval.dead .player-name{
+      text-decoration: line-through;
+      color: rgba(255,255,255,.78);
+    }
+
+    /* Phase button */
+    .btn-next-phase{
+      position:absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      cursor:pointer;
+      user-select:none;
+      z-index: 5;
+
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255,255,255,.22), transparent 38%),
+        linear-gradient(180deg, rgba(255,204,51,.18), rgba(255,204,51,.06)),
+        linear-gradient(180deg, rgba(35,97,146,.92), rgba(27,78,111,.92));
+      border: 1px solid rgba(255,204,51,.40);
+      box-shadow: 0 26px 52px rgba(0,0,0,.65), var(--glow-gold);
+      text-align:center;
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      padding: 10px;
+    }
+    .btn-next-phase:hover{
+      transform: scale(1.03);
+      box-shadow: 0 30px 60px rgba(0,0,0,.70), 0 0 34px rgba(255,204,51,.26);
+      filter: brightness(1.05);
+    }
+    .btn-next-phase:active{ transform: scale(1.00); }
+    .btn-next-phase .big{
+      font-family: Oswald, Inter, sans-serif;
+      font-size: 20px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 10px 24px rgba(0,0,0,.55);
+      line-height: 1.05;
+    }
+    .btn-next-phase .small{
+      font-size: 11px;
+      color: rgba(255,255,255,.80);
+      margin-top: 4px;
+      line-height: 1.2;
+    }
+
+    /* Countdown ring overlay */
+    .countdown-oval{
+      position:absolute;
+      width: 62%;
+      height: 62%;
+      border-radius: 50%;
+      display:none;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      z-index: 20;
+
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.16), transparent 40%),
+        linear-gradient(180deg, rgba(255,204,51,.12), rgba(255,204,51,.05)),
+        linear-gradient(180deg, rgba(35,97,146,.92), rgba(27,78,111,.92));
+
+      border: 10px solid rgba(0,0,0,.85);
+      box-shadow: 0 30px 80px rgba(0,0,0,.75), var(--glow-blue);
+      backdrop-filter: blur(6px);
+    }
+    #countdown{
+      font-family: Oswald, Inter, sans-serif;
+      font-size: clamp(48px, 6vw, 96px);
+      letter-spacing: .05em;
+      color: #fff;
+      text-shadow: 0 18px 45px rgba(0,0,0,.62);
+    }
+    .timer-actions{
+      display:flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+      justify-content:center;
+    }
+
+    /* Modal overlay */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 10000;
+      padding: 18px;
+    }
+    .modal{
+      width: min(760px, 100%);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255,204,51,.12), transparent 36%),
+        radial-gradient(circle at 80% 12%, rgba(35,97,146,.18), transparent 42%),
+        rgba(17,18,23,.92);
+      box-shadow: 0 30px 90px rgba(0,0,0,.75);
+      padding: 18px 18px 16px;
+    }
+    .modal h3{
+      margin: 0 0 10px;
+      font-family: Oswald, Inter, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 18px;
+    }
+    .modal p{
+      margin: 8px 0 0;
+      color: rgba(255,255,255,.86);
+      line-height: 1.35;
+    }
+    .modal .actions{
+      display:flex;
+      gap: 10px;
+      justify-content:flex-end;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Win popup: cinematic */
+    .win-circle{
+      width: min(520px, 84vw);
+      height: min(520px, 84vw);
+      border-radius: 50%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,.18), transparent 42%),
+        linear-gradient(180deg, rgba(255,204,51,.14), rgba(255,204,51,.06)),
+        linear-gradient(180deg, rgba(35,97,146,.92), rgba(27,78,111,.92));
+      border: 10px solid rgba(0,0,0,.9);
+      box-shadow: 0 40px 120px rgba(0,0,0,.80), var(--glow-gold);
+      position: relative;
+      overflow:hidden;
+    }
+    .win-circle::before{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.18), transparent 65%);
+      transform: rotate(12deg);
+      animation: shimmer 2.2s ease-in-out infinite;
+      opacity: .55;
+      pointer-events:none;
+    }
+    @keyframes shimmer{
+      0%{ transform: translateX(-20%) rotate(12deg); }
+      50%{ transform: translateX(20%) rotate(12deg); }
+      100%{ transform: translateX(-20%) rotate(12deg); }
+    }
+
+    #win-message{
+      font-family: Oswald, Inter, sans-serif;
+      font-size: clamp(44px, 5.8vw, 92px);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color:#fff;
+      text-shadow: 0 20px 55px rgba(0,0,0,.70);
+      margin: 0 0 10px;
+      padding: 0 18px;
+      line-height: 1.02;
+    }
+    .win-sub{
+      font-size: 13px;
+      color: rgba(255,255,255,.80);
+      margin-bottom: 18px;
+    }
+
+    /* Manual assign layout */
+    .columns{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    @media (max-width: 900px){
+      .columns{ grid-template-columns: 1fr; }
+    }
+    .col{
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .col h4{
+      margin:0 0 10px;
+      font-family: Oswald, Inter, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 14px;
+      color: rgba(255,255,255,.90);
+    }
+    .opt{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 8px 8px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      transition: border-color .12s ease, background .12s ease;
+    }
+    .opt:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.10);
+    }
+    .opt span{
+      font-size: 13px;
+      color: rgba(255,255,255,.88);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    input[type="checkbox"], input[type="radio"]{
+      accent-color: var(--gold);
+      width: 18px;
+      height: 18px;
+    }
+
+    /* small footer note */
+    .footer-note{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.60);
+      text-align:center;
+      width: min(1100px, 100%);
+    }
+
+    /* subtle pulse for phase button when game started */
+    .pulse{
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ box-shadow: 0 26px 52px rgba(0,0,0,.65), 0 0 30px rgba(255,204,51,.20); }
+      50%{ box-shadow: 0 30px 60px rgba(0,0,0,.70), 0 0 42px rgba(255,204,51,.28); }
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Mafia Game</h1>
-    <div class="input-section">
-        <div class="roles">
-            <h2>Assign Roles</h2>
-            <label for="players">Enter player names (comma separated):</label>
-            <input type="text" id="players" placeholder="e.g., Alice, Bob, Charlie" size="50"><br><br>
-            <label for="num-mafia">Enter number of mafia:</label>
-            <input type="number" id="num-mafia" placeholder="e.g., 2" min="1">
-            <button class="btn" onclick="assignRoles()">Assign Roles Randomly</button>
-            <button class="btn" onclick="showManualAssignPopup()">Assign Roles Manually</button>
+  <h1>Mafia Game</h1>
+
+  <div class="top-wrap">
+    <div class="panel">
+      <h2>Setup</h2>
+
+      <label for="players">Player names (comma-separated)</label>
+      <input type="text" id="players" placeholder="e.g., Alice, Bob, Charlie, Dina, Asher" />
+
+      <div class="row">
+        <div style="flex:1; min-width: 160px;">
+          <label for="num-mafia">Number of mafia</label>
+          <input type="number" id="num-mafia" placeholder="e.g., 2" min="1" />
         </div>
-        <div class="timer-settings">
-            <label for="timer">Set Timer (minutes:seconds):</label>
-            <input type="text" id="timer" value="03:00" size="6">
-            <button class="btn" onclick="setTimer()">Set Timer</button>
+
+        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <button class="btn primary" id="btn-assign-random">Assign Roles Randomly</button>
+          <button class="btn" id="btn-assign-manual">Assign Roles Manually</button>
+          <button class="btn danger" id="btn-reset">Reset Game</button>
         </div>
+      </div>
+
+      <div class="hint">
+        Tip: You need at least <strong>(mafia + 2)</strong> players to include a Medic and Detective.
+      </div>
+
+      <div id="setup-error" class="error"></div>
     </div>
-    <div class="container">
-        <div id="player-list" class="player-list"></div>
-        <div class="btn-next-phase" onclick="nextPhase()">Next Phase</div>
-        <div id="countdown-oval" class="countdown-oval hidden">
-            <div id="countdown"></div>
-            <button class="btn-close" onclick="endTimer()">End Timer</button>
+
+    <div class="panel">
+      <div class="status">
+        <div class="badge" id="phase-badge">
+          <span class="dot night" id="phase-dot"></span>
+          <strong id="phase-text">Night</strong>
         </div>
-    </div>
-    <div id="popup" class="popup hidden">
-        <p id="popup-message"></p>
-        <button class="btn-yes" onclick="confirmRevive()">Yes</button>
-        <button class="btn-no" onclick="closePopup()">No</button>
-    </div>
-    <div id="win-popup" class="win-popup hidden">
-        <div id="win-message"></div>
-        <button class="btn-revive-all" onclick="reviveAllPlayers()">Revive All Players</button>
-    </div>
-    <div id="assign-roles-popup" class="assign-roles-popup hidden">
-        <h2>Assign Roles Manually</h2>
-        <div class="manual-assign-columns">
-            <div class="manual-assign-column" id="mafia-column">
-                <h3>Mafia</h3>
-                <div id="mafia-roles"></div>
-            </div>
-            <div class="manual-assign-column" id="detective-column">
-                <h3>Detective</h3>
-                <div id="detective-roles"></div>
-            </div>
-            <div class="manual-assign-column" id="medic-column">
-                <h3>Medic</h3>
-                <div id="medic-roles"></div>
-            </div>
+
+        <div class="badge">
+          Alive: <strong id="alive-count">0</strong>&nbsp; | &nbsp;Dead: <strong id="dead-count">0</strong>
         </div>
-        <button class="btn" onclick="confirmManualAssign()">Confirm</button>
-        <button class="btn" onclick="closeManualAssignPopup()">Cancel</button>
+
+        <div class="badge">
+          Timer: <strong id="timer-display">03:00</strong>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div style="flex:1; min-width:200px;">
+          <label for="timer">Set Timer (mm:ss, m:ss, ss)</label>
+          <input type="text" id="timer" value="03:00" />
+        </div>
+        <button class="btn" id="btn-set-timer" style="margin-top:22px;">Set Timer</button>
+      </div>
+
+      <div class="hint">
+        During <strong>Day</strong>, the countdown appears on stage. You can pause/resume or end early.
+      </div>
+    </div>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="container" id="stage">
+      <div id="player-list"></div>
+
+      <div class="btn-next-phase" id="btn-next-phase" title="Advance phase">
+        <div class="big" id="next-phase-main">Start</div>
+        <div class="small" id="next-phase-sub">Assign roles to begin</div>
+      </div>
+
+      <div id="countdown-oval" class="countdown-oval" aria-live="polite">
+        <div id="countdown">03:00</div>
+        <div class="timer-actions">
+          <button class="btn small" id="btn-pause">Pause</button>
+          <button class="btn small" id="btn-resume" style="display:none;">Resume</button>
+          <button class="btn danger small" id="btn-end-timer">End Timer</button>
+        </div>
+      </div>
     </div>
 
-    <script>
-        let players = [];
-        let currentPhase = 'night';
-        let mafia = [];
-        let villagers = [];
-        let medic = null;
-        let detective = null;
-        let deadPlayers = [];
-        let countdownInterval;
-        let timerValue = 180; // default 3 minutes in seconds
-        let playerToRevive = null;
+    <div class="footer-note">
+      Moderator controls: click a nameplate to mark <strong>dead</strong>. Click a dead player to revive (confirmation).
+    </div>
+  </div>
 
-        function assignRoles() {
-            const playerInput = document.getElementById('players').value;
-            const numMafia = parseInt(document.getElementById('num-mafia').value, 10);
-            players = playerInput.split(',').map(name => name.trim());
+  <!-- Revive confirm modal -->
+  <div class="overlay" id="revive-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3>Revive player?</h3>
+      <p id="revive-message"></p>
+      <div class="actions">
+        <button class="btn" id="btn-revive-no">No</button>
+        <button class="btn primary" id="btn-revive-yes">Yes</button>
+      </div>
+    </div>
+  </div>
 
-            // Shuffle players randomly and assign roles
-            shuffle(players);
-            mafia = players.slice(0, numMafia);
-            medic = players[numMafia];
-            detective = players[numMafia + 1];
-            villagers = players.slice(numMafia + 2);
-            
-            // Sort players alphabetically for display
-            players.sort();
-            
-            alert(`Mafia: ${mafia.join(', ')}\nMedic: ${medic}\nDetective: ${detective}\nVillagers: ${villagers.join(', ')}`);
-            
-            displayPlayers();
+  <!-- Manual assign modal -->
+  <div class="overlay" id="manual-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3>Assign Roles Manually</h3>
+      <p style="margin-top:0;color:rgba(255,255,255,.78);font-size:13px;">
+        Choose exactly <strong id="need-mafia">0</strong> mafia, and optionally one Medic and one Detective.
+      </p>
+
+      <div class="columns">
+        <div class="col">
+          <h4>Mafia</h4>
+          <div id="manual-mafia"></div>
+        </div>
+        <div class="col">
+          <h4>Detective</h4>
+          <div id="manual-detective"></div>
+        </div>
+        <div class="col">
+          <h4>Medic</h4>
+          <div id="manual-medic"></div>
+        </div>
+      </div>
+
+      <div id="manual-error" class="error" style="display:none;"></div>
+
+      <div class="actions">
+        <button class="btn" id="btn-manual-cancel">Cancel</button>
+        <button class="btn primary" id="btn-manual-confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win modal -->
+  <div class="overlay" id="win-overlay" role="dialog" aria-modal="true">
+    <div class="win-circle">
+      <div id="win-message">Villagers Win!</div>
+      <div class="win-sub" id="win-sub">Game over. Revive everyone to continue.</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; padding: 0 18px;">
+        <button class="btn" id="btn-close-win">Close</button>
+        <button class="btn primary" id="btn-revive-all">Revive All Players</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======= Game State =======
+    let players = [];              // display order (alphabetical)
+    let mafia = [];                // names
+    let medic = null;              // name
+    let detective = null;          // name
+    let deadPlayers = new Set();   // names
+
+    let gameStarted = false;
+    let gameOver = false;
+
+    let currentPhase = 'night';    // 'night' | 'day'
+
+    // Timer
+    let timerValue = 180;          // seconds
+    let countdownInterval = null;
+    let timeLeft = 180;
+    let timerRunning = false;
+    let timerPaused = false;
+
+    // Revive modal
+    let pendingRevive = null;
+
+    // ======= DOM =======
+    const el = {
+      setupError: document.getElementById('setup-error'),
+      manualError: document.getElementById('manual-error'),
+
+      aliveCount: document.getElementById('alive-count'),
+      deadCount: document.getElementById('dead-count'),
+
+      phaseDot: document.getElementById('phase-dot'),
+      phaseText: document.getElementById('phase-text'),
+
+      timerInput: document.getElementById('timer'),
+      timerDisplay: document.getElementById('timer-display'),
+
+      stage: document.getElementById('stage'),
+      playerList: document.getElementById('player-list'),
+
+      nextPhaseBtn: document.getElementById('btn-next-phase'),
+      nextPhaseMain: document.getElementById('next-phase-main'),
+      nextPhaseSub: document.getElementById('next-phase-sub'),
+
+      countdownOval: document.getElementById('countdown-oval'),
+      countdown: document.getElementById('countdown'),
+      btnPause: document.getElementById('btn-pause'),
+      btnResume: document.getElementById('btn-resume'),
+      btnEndTimer: document.getElementById('btn-end-timer'),
+
+      // overlays
+      reviveOverlay: document.getElementById('revive-overlay'),
+      reviveMessage: document.getElementById('revive-message'),
+      btnReviveYes: document.getElementById('btn-revive-yes'),
+      btnReviveNo: document.getElementById('btn-revive-no'),
+
+      manualOverlay: document.getElementById('manual-overlay'),
+      needMafia: document.getElementById('need-mafia'),
+      manualMafia: document.getElementById('manual-mafia'),
+      manualDetective: document.getElementById('manual-detective'),
+      manualMedic: document.getElementById('manual-medic'),
+      btnManualCancel: document.getElementById('btn-manual-cancel'),
+      btnManualConfirm: document.getElementById('btn-manual-confirm'),
+
+      winOverlay: document.getElementById('win-overlay'),
+      winMessage: document.getElementById('win-message'),
+      winSub: document.getElementById('win-sub'),
+      btnCloseWin: document.getElementById('btn-close-win'),
+      btnReviveAll: document.getElementById('btn-revive-all'),
+    };
+
+    // Buttons (setup)
+    document.getElementById('btn-assign-random').addEventListener('click', assignRolesRandomly);
+    document.getElementById('btn-assign-manual').addEventListener('click', showManualAssignPopup);
+    document.getElementById('btn-set-timer').addEventListener('click', setTimerFromInput);
+    document.getElementById('btn-reset').addEventListener('click', resetGame);
+
+    // Stage controls
+    el.nextPhaseBtn.addEventListener('click', nextPhase);
+    el.btnPause.addEventListener('click', pauseTimer);
+    el.btnResume.addEventListener('click', resumeTimer);
+    el.btnEndTimer.addEventListener('click', endTimerEarly);
+
+    // Revive modal controls
+    el.btnReviveYes.addEventListener('click', confirmRevive);
+    el.btnReviveNo.addEventListener('click', closeReviveModal);
+    el.reviveOverlay.addEventListener('click', (e) => { if(e.target === el.reviveOverlay) closeReviveModal(); });
+
+    // Manual modal controls
+    el.btnManualCancel.addEventListener('click', closeManualAssignPopup);
+    el.manualOverlay.addEventListener('click', (e) => { if(e.target === el.manualOverlay) closeManualAssignPopup(); });
+
+    // Win modal controls
+    el.btnCloseWin.addEventListener('click', () => showOverlay(el.winOverlay, false));
+    el.btnReviveAll.addEventListener('click', reviveAllPlayers);
+    el.winOverlay.addEventListener('click', (e) => { if(e.target === el.winOverlay) showOverlay(el.winOverlay, false); });
+
+    // Initialize
+    updatePhaseUI();
+    updateCounts();
+    updateNextPhaseButton();
+    setTimerFromInput(true);
+
+    // ======= Helpers =======
+    function showError(targetEl, msg){
+      targetEl.textContent = msg;
+      targetEl.style.display = 'block';
+    }
+    function clearError(targetEl){
+      targetEl.textContent = '';
+      targetEl.style.display = 'none';
+    }
+
+    function parsePlayersInput(){
+      const raw = document.getElementById('players').value || '';
+      // split, trim, filter empties
+      let list = raw.split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      // normalize whitespace
+      list = list.map(s => s.replace(/\s+/g,' '));
+
+      // detect duplicates (case-insensitive)
+      const seen = new Set();
+      const dups = new Set();
+      for (const name of list){
+        const key = name.toLowerCase();
+        if(seen.has(key)) dups.add(name);
+        seen.add(key);
+      }
+
+      return { list, dups: Array.from(dups) };
+    }
+
+    function formatTime(sec){
+      const s = Math.max(0, Math.floor(sec));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${m}:${r < 10 ? '0' : ''}${r}`;
+    }
+
+    // Accept: "mm:ss", "m:ss", "ss", "m" (treated as minutes only if <= 59? no—treat single number as seconds for safety)
+    function parseTimerInput(str){
+      const t = (str || '').trim();
+      if(!t) return null;
+
+      if(t.includes(':')){
+        const parts = t.split(':').map(p => p.trim());
+        if(parts.length !== 2) return null;
+        const mm = Number(parts[0]);
+        const ss = Number(parts[1]);
+        if(!Number.isFinite(mm) || !Number.isFinite(ss)) return null;
+        if(mm < 0 || ss < 0) return null;
+
+        const clampedSeconds = Math.min(59, Math.floor(ss));
+        return Math.floor(mm) * 60 + clampedSeconds;
+      }
+
+      // if no colon, treat as seconds
+      const v = Number(t);
+      if(!Number.isFinite(v) || v < 0) return null;
+      return Math.floor(v);
+    }
+
+    function shuffle(array){
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function showOverlay(overlayEl, on){
+      overlayEl.style.display = on ? 'flex' : 'none';
+    }
+
+    function updateCounts(){
+      const alive = players.filter(p => !deadPlayers.has(p)).length;
+      el.aliveCount.textContent = String(alive);
+      el.deadCount.textContent = String(deadPlayers.size);
+    }
+
+    function updatePhaseUI(){
+      const isDay = currentPhase === 'day';
+      el.phaseText.textContent = isDay ? 'Day' : 'Night';
+      el.phaseDot.classList.toggle('day', isDay);
+      el.phaseDot.classList.toggle('night', !isDay);
+    }
+
+    function updateNextPhaseButton(){
+      if(!gameStarted){
+        el.nextPhaseMain.textContent = 'Start';
+        el.nextPhaseSub.textContent = 'Assign roles to begin';
+        el.nextPhaseBtn.classList.remove('pulse');
+        return;
+      }
+
+      if(gameOver){
+        el.nextPhaseMain.textContent = 'Game Over';
+        el.nextPhaseSub.textContent = 'Revive or reset';
+        el.nextPhaseBtn.classList.remove('pulse');
+        return;
+      }
+
+      if(currentPhase === 'night'){
+        el.nextPhaseMain.textContent = 'Start Day';
+        el.nextPhaseSub.textContent = 'Open timer';
+      } else {
+        el.nextPhaseMain.textContent = 'Start Night';
+        el.nextPhaseSub.textContent = 'Hide timer';
+      }
+      el.nextPhaseBtn.classList.add('pulse');
+    }
+
+    function ensureGameReady(){
+      if(!gameStarted){
+        showError(el.setupError, 'Assign roles first to begin the game.');
+        return false;
+      }
+      if(gameOver){
+        // allow phase button to do nothing when game over
+        return false;
+      }
+      return true;
+    }
+
+    // ======= Core: Display =======
+    function displayPlayers(){
+      el.playerList.innerHTML = '';
+
+      if(players.length === 0){
+        updateCounts();
+        return;
+      }
+
+      const size = el.stage.getBoundingClientRect().width;
+      const radius = Math.max(0, (size / 2) - 90); // keep pills inside stage bounds
+      const angleStep = (2 * Math.PI) / players.length;
+
+      players.forEach((player, idx) => {
+        const angle = idx * angleStep - Math.PI / 2; // start at top
+        const x = (radius * Math.cos(angle));
+        const y = (radius * Math.sin(angle));
+
+        const pill = document.createElement('div');
+        pill.className = 'player-oval';
+        if(deadPlayers.has(player)) pill.classList.add('dead');
+
+        // store translate in CSS vars for hover scaling while preserving position
+        pill.style.setProperty('--x', `translate(${x - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pill-w'))/2)}px, ${y - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pill-h'))/2)}px)`);
+        pill.style.setProperty('--y', '');
+
+        pill.style.transform = `translate(${x - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pill-w'))/2)}px, ${y - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pill-h'))/2)}px)`;
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'player-name';
+        nameEl.textContent = player;
+
+        const subEl = document.createElement('div');
+        subEl.className = 'player-sub';
+
+        pill.appendChild(nameEl);
+        pill.appendChild(subEl);
+
+        pill.addEventListener('click', () => togglePlayerStatus(player));
+        el.playerList.appendChild(pill);
+      });
+
+      updateCounts();
+    }
+
+    // keep ring layout responsive on resize
+    window.addEventListener('resize', () => {
+      if(players.length) displayPlayers();
+    });
+
+    // ======= Game logic: Roles =======
+    function validateSetup(list, numMafia){
+      if(list.length < 1) return 'Enter at least one player name.';
+      if(!Number.isFinite(numMafia) || numMafia < 1) return 'Enter a valid mafia count (minimum 1).';
+      if(list.length < numMafia + 2) return `Not enough players. You need at least ${numMafia + 2} players for ${numMafia} mafia + Medic + Detective.`;
+      if(numMafia > list.length - 2) return `Mafia count is too high. Max mafia for ${list.length} players is ${list.length - 2}.`;
+      return null;
+    }
+
+    function assignRolesRandomly(){
+      clearError(el.setupError);
+      clearError(el.manualError);
+
+      const { list, dups } = parsePlayersInput();
+      const numMafia = Number.parseInt(document.getElementById('num-mafia').value, 10);
+
+      if(dups.length){
+        showError(el.setupError, `Duplicate name detected (case-insensitive). Please make all names unique. Example duplicate: "${dups[0]}".`);
+        return;
+      }
+
+      const err = validateSetup(list, numMafia);
+      if(err){
+        showError(el.setupError, err);
+        return;
+      }
+
+      // reset state
+      resetRoundState();
+
+      // role assignment on shuffled list
+      const working = list.slice();
+      shuffle(working);
+
+      mafia = working.slice(0, numMafia);
+      medic = working[numMafia];
+      detective = working[numMafia + 1];
+
+      // display list alphabetical
+      players = list.slice().sort((a,b) => a.localeCompare(b));
+
+      gameStarted = true;
+      gameOver = false;
+      currentPhase = 'night';
+      stopTimer(true);
+
+      updatePhaseUI();
+      updateNextPhaseButton();
+      displayPlayers();
+
+      alert(
+        `Mafia: ${mafia.join(', ')}\n` +
+        `Medic: ${medic}\n` +
+        `Detective: ${detective}\n` +
+        `Villagers: ${players.filter(p => !mafia.includes(p) && p !== medic && p !== detective).join(', ')}`
+      );
+    }
+
+    function resetRoundState(){
+      mafia = [];
+      medic = null;
+      detective = null;
+      deadPlayers = new Set();
+    }
+
+    // ======= Manual Assign =======
+    function showManualAssignPopup(){
+      clearError(el.setupError);
+      clearError(el.manualError);
+
+      const { list, dups } = parsePlayersInput();
+      const numMafia = Number.parseInt(document.getElementById('num-mafia').value, 10);
+
+      if(dups.length){
+        showError(el.setupError, `Duplicate name detected (case-insensitive). Please make all names unique. Example duplicate: "${dups[0]}".`);
+        return;
+      }
+
+      const err = validateSetup(list, numMafia);
+      if(err){
+        showError(el.setupError, err);
+        return;
+      }
+
+      // Build UI safely (no innerHTML with user content)
+      el.needMafia.textContent = String(numMafia);
+
+      el.manualMafia.innerHTML = '';
+      el.manualDetective.innerHTML = '';
+      el.manualMedic.innerHTML = '';
+
+      // Use stable indices (not names) for IDs
+      list.forEach((name, i) => {
+        // Mafia checkbox
+        el.manualMafia.appendChild(makeOption('checkbox', `mafia_${i}`, 'mafia', i, name));
+        // Detective radio
+        el.manualDetective.appendChild(makeOption('radio', `detective_${i}`, 'detective', i, name));
+        // Medic radio
+        el.manualMedic.appendChild(makeOption('radio', `medic_${i}`, 'medic', i, name));
+      });
+
+      // Enforce mafia max, and prevent same player having multiple roles
+      el.manualOverlay.dataset.numMafia = String(numMafia);
+      el.manualOverlay.dataset.playerCount = String(list.length);
+
+      // store list temporarily on overlay (safe as JSON)
+      el.manualOverlay.dataset.players = JSON.stringify(list);
+
+      // Add change handlers
+      el.manualOverlay.querySelectorAll('input').forEach(inp => {
+        inp.addEventListener('change', () => enforceManualRules());
+      });
+
+      showOverlay(el.manualOverlay, true);
+      enforceManualRules(); // initial
+    }
+
+    function makeOption(type, id, groupName, index, label){
+      const wrap = document.createElement('label');
+      wrap.className = 'opt';
+
+      const input = document.createElement('input');
+      input.type = type;
+      input.id = id;
+      input.dataset.idx = String(index);
+      input.dataset.role = groupName;
+
+      if(type === 'radio'){
+        input.name = groupName; // group
+      }
+
+      const text = document.createElement('span');
+      text.textContent = label;
+
+      wrap.appendChild(input);
+      wrap.appendChild(text);
+      return wrap;
+    }
+
+    function enforceManualRules(){
+      clearError(el.manualError);
+
+      const numMafia = Number(el.manualOverlay.dataset.numMafia);
+      const list = JSON.parse(el.manualOverlay.dataset.players);
+
+      const mafiaInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="mafia"]'));
+      const detInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="detective"]'));
+      const medInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="medic"]'));
+
+      // Cap mafia count
+      const checkedMafia = mafiaInputs.filter(i => i.checked);
+      if(checkedMafia.length > numMafia){
+        // uncheck the most recently changed element (best effort: uncheck last in DOM)
+        checkedMafia[checkedMafia.length - 1].checked = false;
+      }
+
+      // Role exclusivity per player index:
+      // If mafia checked for idx, unset detective/medic for that idx
+      // If detective checked for idx, unset mafia + medic for that idx
+      // If medic checked for idx, unset mafia + detective for that idx
+      for(let i = 0; i < list.length; i++){
+        const m = mafiaInputs.find(x => Number(x.dataset.idx) === i)?.checked;
+        const d = detInputs.find(x => Number(x.dataset.idx) === i)?.checked;
+        const c = medInputs.find(x => Number(x.dataset.idx) === i)?.checked;
+
+        // Priority: whichever is checked last will have fired change event.
+        // We'll resolve by simple rule: if mafia is checked, clear others;
+        // else if detective is checked, clear medic & mafia; else if medic checked, clear mafia & detective.
+        if(m){
+          const di = detInputs.find(x => Number(x.dataset.idx) === i);
+          const ci = medInputs.find(x => Number(x.dataset.idx) === i);
+          if(di) di.checked = false;
+          if(ci) ci.checked = false;
+        } else if(d){
+          const mi = mafiaInputs.find(x => Number(x.dataset.idx) === i);
+          const ci = medInputs.find(x => Number(x.dataset.idx) === i);
+          if(mi) mi.checked = false;
+          if(ci) ci.checked = false;
+        } else if(c){
+          const mi = mafiaInputs.find(x => Number(x.dataset.idx) === i);
+          const di = detInputs.find(x => Number(x.dataset.idx) === i);
+          if(mi) mi.checked = false;
+          if(di) di.checked = false;
         }
+      }
+    }
 
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+    function closeManualAssignPopup(){
+      showOverlay(el.manualOverlay, false);
+      clearError(el.manualError);
+    }
+
+    el.btnManualConfirm.addEventListener('click', confirmManualAssign);
+
+    function confirmManualAssign(){
+      clearError(el.manualError);
+
+      const numMafia = Number(el.manualOverlay.dataset.numMafia);
+      const list = JSON.parse(el.manualOverlay.dataset.players);
+
+      const mafiaInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="mafia"]'));
+      const detInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="detective"]'));
+      const medInputs = Array.from(el.manualOverlay.querySelectorAll('input[data-role="medic"]'));
+
+      const pickedMafiaIdx = mafiaInputs.filter(i => i.checked).map(i => Number(i.dataset.idx));
+      if(pickedMafiaIdx.length !== numMafia){
+        showError(el.manualError, `Select exactly ${numMafia} mafia.`);
+        return;
+      }
+
+      const pickedDetective = detInputs.find(i => i.checked);
+      const pickedMedic = medInputs.find(i => i.checked);
+
+      // Build roles
+      resetRoundState();
+
+      mafia = pickedMafiaIdx.map(i => list[i]);
+      detective = pickedDetective ? list[Number(pickedDetective.dataset.idx)] : null;
+      medic = pickedMedic ? list[Number(pickedMedic.dataset.idx)] : null;
+
+      // Validate no overlap (should be enforced, but double-check)
+      const all = new Set();
+      for(const n of mafia){
+        if(all.has(n)){
+          showError(el.manualError, 'A player is assigned multiple roles. Please try again.');
+          return;
         }
+        all.add(n);
+      }
+      if(detective){
+        if(all.has(detective)){ showError(el.manualError, 'Detective overlaps with Mafia.'); return; }
+        all.add(detective);
+      }
+      if(medic){
+        if(all.has(medic)){ showError(el.manualError, 'Medic overlaps with another role.'); return; }
+        all.add(medic);
+      }
 
-        function displayPlayers() {
-            const playerList = document.getElementById('player-list');
-            playerList.innerHTML = '';
-            const radius = 340; // Adjust as needed
-            const angleStep = (2 * Math.PI) / players.length;
+      players = list.slice().sort((a,b)=>a.localeCompare(b));
+      gameStarted = true;
+      gameOver = false;
+      currentPhase = 'night';
+      stopTimer(true);
 
-            players.forEach((player, index) => {
-                const angle = index * angleStep;
-                const x = radius * Math.cos(angle) - 50;
-                const y = radius * Math.sin(angle) - 25;
+      updatePhaseUI();
+      updateNextPhaseButton();
+      displayPlayers();
 
-                const div = document.createElement('div');
-                div.textContent = player;
-                div.className = 'player-oval';
-                if (deadPlayers.includes(player)) {
-                    div.classList.add('dead');
-                }
-                div.style.transform = `translate(${x}px, ${y}px)`;
-                div.onclick = () => togglePlayerStatus(player, div);
-                playerList.appendChild(div);
-            });
+      closeManualAssignPopup();
+
+      alert(
+        `Mafia: ${mafia.join(', ')}\n` +
+        `Medic: ${medic ?? '(none)'}\n` +
+        `Detective: ${detective ?? '(none)'}\n` +
+        `Villagers: ${players.filter(p => !mafia.includes(p) && p !== medic && p !== detective).join(', ')}`
+      );
+    }
+
+    // ======= Player toggling =======
+    function togglePlayerStatus(player){
+      if(!gameStarted){
+        showError(el.setupError, 'Assign roles first to begin the game.');
+        return;
+      }
+      if(gameOver) return;
+
+      clearError(el.setupError);
+
+      if(deadPlayers.has(player)){
+        pendingRevive = player;
+        el.reviveMessage.textContent = `Revive ${player}?`;
+        showOverlay(el.reviveOverlay, true);
+      } else {
+        deadPlayers.add(player);
+        displayPlayers();
+        checkVictoryConditions();
+      }
+    }
+
+    function closeReviveModal(){
+      pendingRevive = null;
+      showOverlay(el.reviveOverlay, false);
+    }
+
+    function confirmRevive(){
+      if(pendingRevive){
+        deadPlayers.delete(pendingRevive);
+        pendingRevive = null;
+        displayPlayers();
+      }
+      closeReviveModal();
+    }
+
+    // ======= Victory =======
+    function checkVictoryConditions(){
+      if(!gameStarted) return;
+
+      const remainingMafia = mafia.filter(p => !deadPlayers.has(p));
+      const remainingVillagers = players.filter(p => !deadPlayers.has(p) && !mafia.includes(p));
+
+      if(remainingMafia.length === 0){
+        endGame('Villagers Win!', 'All mafia have been eliminated.');
+      } else if(remainingMafia.length >= remainingVillagers.length){
+        endGame('Mafia Wins!', 'Mafia have reached parity with the town.');
+      }
+    }
+
+    function endGame(title, subtitle){
+      gameOver = true;
+      stopTimer(true);
+      el.winMessage.textContent = title;
+      el.winSub.textContent = subtitle;
+      updateNextPhaseButton();
+      showOverlay(el.winOverlay, true);
+    }
+
+    function reviveAllPlayers(){
+      deadPlayers = new Set();
+      gameOver = false;
+      // keep roles, restart at night
+      currentPhase = 'night';
+      stopTimer(true);
+      updatePhaseUI();
+      updateNextPhaseButton();
+      displayPlayers();
+      showOverlay(el.winOverlay, false);
+    }
+
+    // ======= Timer / Phases =======
+    function setTimerFromInput(silent=false){
+      const parsed = parseTimerInput(el.timerInput.value);
+      if(parsed === null){
+        if(!silent) showError(el.setupError, 'Timer format invalid. Use mm:ss, m:ss, or seconds.');
+        return;
+      }
+      clearError(el.setupError);
+
+      timerValue = Math.max(5, Math.min(60 * 60, parsed)); // clamp 5s to 60m
+      el.timerDisplay.textContent = formatTime(timerValue);
+      el.countdown.textContent = formatTime(timerValue);
+
+      // if currently running, reset to new value
+      if(timerRunning){
+        stopTimer(false);
+        startDayTimer();
+      }
+    }
+
+    function nextPhase(){
+      if(!ensureGameReady()) return;
+
+      if(currentPhase === 'night'){
+        currentPhase = 'day';
+        updatePhaseUI();
+        updateNextPhaseButton();
+        startDayTimer();
+      } else {
+        currentPhase = 'night';
+        updatePhaseUI();
+        updateNextPhaseButton();
+        stopTimer(true);
+      }
+    }
+
+    function startDayTimer(){
+      // prevent multiple intervals
+      stopTimer(false);
+
+      timerRunning = true;
+      timerPaused = false;
+      timeLeft = timerValue;
+
+      el.countdown.textContent = formatTime(timeLeft);
+      el.countdownOval.style.display = 'flex';
+
+      el.btnPause.style.display = 'inline-flex';
+      el.btnResume.style.display = 'none';
+
+      countdownInterval = setInterval(() => {
+        if(timerPaused) return;
+
+        timeLeft -= 1;
+        el.countdown.textContent = formatTime(timeLeft);
+
+        if(timeLeft <= 0){
+          stopTimer(false);
+          flashCountdownThenAdvance();
         }
+      }, 1000);
+    }
 
-        function togglePlayerStatus(player, element) {
-            if (deadPlayers.includes(player)) {
-                playerToRevive = player;
-                document.getElementById('popup-message').textContent = `Revive this player?`;
-                document.getElementById('popup').classList.remove('hidden');
-            } else {
-                deadPlayers.push(player);
-                element.classList.add('dead');
-                checkVictoryConditions();
-            }
+    function pauseTimer(){
+      if(!timerRunning) return;
+      timerPaused = true;
+      el.btnPause.style.display = 'none';
+      el.btnResume.style.display = 'inline-flex';
+    }
+
+    function resumeTimer(){
+      if(!timerRunning) return;
+      timerPaused = false;
+      el.btnResume.style.display = 'none';
+      el.btnPause.style.display = 'inline-flex';
+    }
+
+    function endTimerEarly(){
+      if(!timerRunning) return;
+      stopTimer(true);
+      // move to night
+      currentPhase = 'night';
+      updatePhaseUI();
+      updateNextPhaseButton();
+    }
+
+    function stopTimer(hideOval){
+      if(countdownInterval){
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+      timerRunning = false;
+      timerPaused = false;
+      el.btnPause.style.display = 'inline-flex';
+      el.btnResume.style.display = 'none';
+      if(hideOval){
+        el.countdownOval.style.display = 'none';
+      }
+    }
+
+    function flashCountdownThenAdvance(){
+      el.countdown.textContent = '0:00';
+      let flashes = 0;
+      const flashTimer = setInterval(() => {
+        el.countdown.style.visibility = (el.countdown.style.visibility === 'hidden') ? 'visible' : 'hidden';
+        flashes++;
+        if(flashes >= 10){
+          clearInterval(flashTimer);
+          el.countdown.style.visibility = 'visible';
+          el.countdownOval.style.display = 'none';
+
+          // auto-advance to night
+          currentPhase = 'night';
+          updatePhaseUI();
+          updateNextPhaseButton();
         }
+      }, 220);
+    }
 
-        function confirmRevive() {
-            const index = deadPlayers.indexOf(playerToRevive);
-            if (index > -1) {
-                deadPlayers.splice(index, 1);
-                displayPlayers();
-            }
-            closePopup();
-        }
+    // ======= Reset =======
+    function resetGame(){
+      // stop everything and clear state
+      stopTimer(true);
+      resetRoundState();
+      players = [];
+      gameStarted = false;
+      gameOver = false;
+      currentPhase = 'night';
 
-        function closePopup() {
-            document.getElementById('popup').classList.add('hidden');
-        }
+      updatePhaseUI();
+      updateNextPhaseButton();
+      el.playerList.innerHTML = '';
+      updateCounts();
+      clearError(el.setupError);
+      clearError(el.manualError);
 
-        function setTimer() {
-            const timerInput = document.getElementById('timer').value.split(':');
-            const minutes = parseInt(timerInput[0], 10);
-            const seconds = parseInt(timerInput[1], 10);
-            timerValue = (minutes * 60) + seconds;
-        }
-
-        function nextPhase() {
-            if (currentPhase === 'night') {
-                currentPhase = 'day';
-                startDayTimer();
-            } else {
-                currentPhase = 'night';
-                document.getElementById('countdown-oval').style.display = 'none';
-            }
-        }
-
-        function startDayTimer() {
-            let timeLeft = timerValue;
-            const countdownElement = document.getElementById('countdown');
-            document.getElementById('countdown-oval').style.display = 'flex';
-            countdownInterval = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    flashCountdown();
-                } else {
-                    timeLeft--;
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                }
-            }, 1000);
-        }
-
-        function endTimer() {
-            clearInterval(countdownInterval);
-            document.getElementById('countdown-oval').style.display = 'none';
-            nextPhase();
-        }
-
-        function flashCountdown() {
-            const countdownElement = document.getElementById('countdown');
-            countdownElement.textContent = '0:00';
-            let flashCount = 0;
-            const flashTimer = setInterval(() => {
-                countdownElement.style.visibility = countdownElement.style.visibility === 'hidden' ? 'visible' : 'hidden';
-                flashCount++;
-                if (flashCount === 10) {
-                    clearInterval(flashTimer);
-                    document.getElementById('countdown-oval').style.display = 'none';
-                    nextPhase(); // Automatically move to the next phase when flashing is done
-                }
-            }, 500);
-        }
-
-        function checkVictoryConditions() {
-            const remainingVillagers = players.filter(player => !mafia.includes(player) && !deadPlayers.includes(player));
-            const remainingMafia = mafia.filter(player => !deadPlayers.includes(player));
-
-            if (remainingMafia.length === 0) {
-                showWinPopup('Villagers Win!');
-            } else if (remainingMafia.length >= remainingVillagers.length) {
-                showWinPopup('Mafia Wins!');
-            }
-        }
-
-        function showWinPopup(message) {
-            const winMessage = document.getElementById('win-message');
-            winMessage.textContent = message;
-            const winPopup = document.getElementById('win-popup');
-            winPopup.style.display = 'flex';
-            let flashCount = 0;
-            const flashTimer = setInterval(() => {
-                if (flashCount % 2 === 0) {
-                    winPopup.style.backgroundColor = '#236192';
-                    winPopup.style.color = '#6F263D';
-                } else {
-                    winPopup.style.backgroundColor = 'black';
-                    winPopup.style.color = '#236192';
-                }
-                flashCount++;
-                if (flashCount === 10) {
-                    clearInterval(flashTimer);
-                    winPopup.style.backgroundColor = 'black';
-                    winPopup.style.color = '#236192';
-                    document.querySelector('.btn-revive-all').style.display = 'block';
-                }
-            }, 1000);
-        }
-
-        function closeWinPopup() {
-            document.getElementById('win-popup').style.display = 'none';
-        }
-
-        function showManualAssignPopup() {
-            const playerInput = document.getElementById('players').value;
-            const numMafia = parseInt(document.getElementById('num-mafia').value, 10);
-            players = playerInput.split(',').map(name => name.trim());
-
-            const mafiaRolesDiv = document.getElementById('mafia-roles');
-            const detectiveRolesDiv = document.getElementById('detective-roles');
-            const medicRolesDiv = document.getElementById('medic-roles');
-            mafiaRolesDiv.innerHTML = '';
-            detectiveRolesDiv.innerHTML = '';
-            medicRolesDiv.innerHTML = '';
-
-            players.forEach(player => {
-                const mafiaDiv = document.createElement('div');
-                const detectiveDiv = document.createElement('div');
-                const medicDiv = document.createElement('div');
-                mafiaDiv.innerHTML = `
-                    <label>
-                        <input type="checkbox" id="mafia-${player}" class="mafia-checkbox" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
-                    </label>
-                `;
-                detectiveDiv.innerHTML = `
-                    <label>
-                        <input type="radio" name="detective" id="detective-${player}" class="detective-radio" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
-                    </label>
-                `;
-                medicDiv.innerHTML = `
-                    <label>
-                        <input type="radio" name="medic" id="medic-${player}" class="medic-radio" value="${player}" onclick="checkSingleRole('${player}')"> ${player}
-                    </label>
-                `;
-                mafiaRolesDiv.appendChild(mafiaDiv);
-                detectiveRolesDiv.appendChild(detectiveDiv);
-                medicRolesDiv.appendChild(medicDiv);
-            });
-
-            // Ensure only the required number of mafia can be selected
-            const mafiaCheckboxes = document.querySelectorAll('.mafia-checkbox');
-            mafiaCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    const checkedMafia = document.querySelectorAll('.mafia-checkbox:checked');
-                    if (checkedMafia.length > numMafia) {
-                        checkbox.checked = false;
-                    }
-                });
-            });
-
-            document.getElementById('assign-roles-popup').classList.remove('hidden');
-        }
-
-        function checkSingleRole(player) {
-            // Uncheck any roles that are already assigned to the same player
-            document.querySelectorAll(`.mafia-checkbox, .detective-radio, .medic-radio`).forEach(input => {
-                if (input.value === player && !input.checked) {
-                    input.checked = false;
-                }
-            });
-        }
-
-        function closeManualAssignPopup() {
-            document.getElementById('assign-roles-popup').classList.add('hidden');
-        }
-
-        function confirmManualAssign() {
-            mafia = [];
-            villagers = [];
-            medic = null;
-            detective = null;
-
-            const mafiaCheckboxes = document.querySelectorAll('.mafia-checkbox:checked');
-            mafiaCheckboxes.forEach(checkbox => {
-                mafia.push(checkbox.value);
-            });
-
-            const medicRadio = document.querySelector('.medic-radio:checked');
-            if (medicRadio) {
-                medic = medicRadio.value;
-            }
-
-            const detectiveRadio = document.querySelector('.detective-radio:checked');
-            if (detectiveRadio) {
-                detective = detectiveRadio.value;
-            }
-
-            players.forEach(player => {
-                if (!mafia.includes(player) && player !== medic && player !== detective) {
-                    villagers.push(player);
-                }
-            });
-
-            alert(`Mafia: ${mafia.join(', ')}\nMedic: ${medic}\nDetective: ${detective}\nVillagers: ${villagers.join(', ')}`);
-            document.getElementById('assign-roles-popup').classList.add('hidden');
-            displayPlayers();
-        }
-
-        function reviveAllPlayers() {
-            deadPlayers = [];
-            displayPlayers();
-            closeWinPopup();
-        }
-    </script>
+      // close overlays if open
+      showOverlay(el.reviveOverlay, false);
+      showOverlay(el.manualOverlay, false);
+      showOverlay(el.winOverlay, false);
+    }
+  </script>
 </body>
 </html>
